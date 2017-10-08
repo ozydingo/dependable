@@ -1,0 +1,5 @@
+require "nice_assets/abstract_interface.rb"
+require "nice_assets/asset.rb"
+require "nice_assets/asset_specification.rb"
+require "nice_assets/asset_seeker.rb"
+require "nice_assets/workflow.rb"

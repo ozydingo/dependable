@@ -16,7 +16,10 @@ class TranscriptionService < ActiveRecord::Base
     process :stream, after: :source
     process :audio, after: {:source_available? => :source, :else => :stream}, required: false
     process :audio, after: ->{:audio_input}, required: false
-    process :transcript, after: [:stream, :audio]
+    process :transcript, after: [:stream, :audio] do
+      before_request: :get_pumped
+      after_finish: :pump_it
+    end
     process :cc_encoding, :if => :cc_encoding_requested?
 
     outputs :transcript, :cc_encoding

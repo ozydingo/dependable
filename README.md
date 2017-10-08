@@ -1,4 +1,13 @@
-Roadmap handle navigation of assets -- knows the map, and what comes next. No knowledge of state or the asset interface
-Workflow uses the workflow to request assets in sequence. Expects assets to have a standard interface. No knowledge ot ActiveRecord or any db backing.
-Commissioner knows how to find and create asset records in ActiveRecord. Passes persisted or new asset objects to the commissioner.
+Roadmap handle navigation of assets -- knows the map, and what comes next. No knowledge of state or the asset interface (ax?)
 
+Workflow
+  - Define which assets get requested when, and handles requesting.
+  - No knowledge of ActiveRecord or db: Initialize with labeled assets.
+  - Supports assets being non-NiceAssets for workflow mapping but will refuse to request them (subsumes more naive Roadmap model).
+  - Can define lifecycle events: start, resume, finish, request(label), finish(label), fail(label)
+
+AssetPimp
+  - Knows where to find its assets using ActiveRecord
+
+ActiveWorkflow
+  - Uses a Workflow and an AssetPimp to provide a single clean interface to integrating a Workflow into an ActiveRecord model
