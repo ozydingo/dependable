@@ -9,4 +9,5 @@ Gem::Specification.new do |s|
   s.files       = Dir["lib/**/*"]
   s.homepage    = 'https://github.com/ozydingo/nice_assets'
   s.license     = 'MIT'
+  s.add_runtime_dependency 'selfish_associations', '~> 0.1', '>= 0.1.3'
 end
