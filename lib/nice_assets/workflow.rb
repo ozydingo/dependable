@@ -82,8 +82,6 @@ module NiceAssets
       asset_specs[label].wait_until.all?{|condition| send(condition)}
     end
 
-    private
-
     def validate_label(label)
       label.is_a?(Symbol) or raise ArgumentError, "Label must be a Symbol"
       asset_specs.key?(label) or raise ArgumentError, "Unrecognized asset label: #{label}"

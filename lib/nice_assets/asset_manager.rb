@@ -1,14 +1,29 @@
 module NiceAssets
   class AssetManager
+    @asset_seekers = {}
+    @asset_cache = {}
+    @asset_callbacks = []
+
+    class << self
+      attr_accessor :asset_specifications, :asset_seekers, :asset_callbacks
+      protected :asset_specifications=, :asset_seekers=, :asset_callbacks=
+
+      def inherited(child)
+        child.asset_specifications = @asset_specifications.deep_dup
+        child.asset_seekers = @asset_seekers.deep_dup
+        child.asset_callbacks = @asset_callbacks.deep_dup
+      end
+    end
+
     # resume / request next assets
     # determine asset requestability
     # abort assets
     # asset callbacks
     # lifecycle callbacks
 
-    attr_reader :workflow
+    attr_reader :workflow, :asset_cache
 
-    def initialize(workflow)
+    def initialize(workflow, **asset_seekers)
       workflow.is_a?(NiceAssets::Workflow) or raise TypeError, "Expected NiceAssets::Workflow, got #{workflow.class}"
       @workflow = workflow
     end
@@ -42,10 +57,13 @@ module NiceAssets
       workflow.next_nodes.select{|label| node.requestable?}
     end
 
-    private
-
     def request_asset(label)
+      workflow.validate_label(label)
+      seeker = asset_seekers[label]
+      asset = seeker
     end
+
+    private
 
     def perform_asset_callbacks(label, event, position)
     end
