@@ -1,3 +1,61 @@
+class Transcript < ActiveRecord::Base
+  nice_assets do
+    asset :edit_job
+    asset :qa_job, skip_if: :skip_qa?
+  end
+end
+
+class TranscriptWorkflow
+  include NiceAssets::ActiveWorkflow
+
+  def initialize(record)
+    @record = record
+  end
+
+
+end
+
+class TranscriptionService
+  lifecycle do
+    after_start ->(s) {s.asset_manager.request_asset(:source)}
+    after_cancel :remove_available_jobs, :close_all_omm_tasks
+    after_reject :remove_available_jobs, :close_all_omm_tasks
+    after_finish :record_missed_deadline, :close_all_omm_tasks
+  end
+
+  has_one :source
+  has_one :dsp_audio
+  has_one :asr_audio
+  has_one :stoe_stream
+  has_one :stoe_volume_stream
+  has_one :asr_output
+  has_asset :asr_transcript, ->(s){where(language_id: s.language.id)}
+  has_one :qt_audio
+  has_asset :transcribed_transcript, ->(s){where(service_id: s.id, language_id: s.media_file.language_id)}
+  has_asset :threeplay_caption, ->(s){ where(threeplay_transcript_id: s.output_transcript.id) }
+
+  asset_workflow do
+    input :source
+    process :dsp_audio, after: :source
+    process :asr_audio, after: :dsp_audio
+    output :stoe_stream, after: :source, as: :output
+    process :stoe_volume_stream, after: :stoe_stream
+    process :asr_output, after: :asr_audio
+    process :asr_transcript, after: :asr_output do
+      on_finish :handle_asr_transcript
+    end
+    process :qt_audio, after: :source
+    process :transcribed_transcript, as: :output, after: [:asr_transcript, :stoe_stream] do
+      on_request :start_caption_placement_service
+      on_finish :postprocess_output_transcript
+    end
+    process :threeplay_caption, as: :output, after: :transcribed_transcript do
+      on_finish  :deliver_assets, :if => :finished?
+    end
+  end
+
+end
+
 class TranscriptionService < ActiveRecord::Base
   include NiceAssets::ActiveWorkflow
 

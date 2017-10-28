@@ -11,3 +11,16 @@ AssetPimp
 
 ActiveWorkflow
   - Uses a Workflow and an AssetPimp to provide a single clean interface to integrating a Workflow into an ActiveRecord model
+
+Primary Use Case:
+
+Service (include ActiveWorkflow)
+  - define asset associations
+  - define workflow
+  - start_processing:
+    - perform start callbacks
+    - resume workflow
+  - resume workflow:
+    - perform workflow resume callbacks
+  - resume workflow until workflow.finished?
+  - perform finish callbacks
