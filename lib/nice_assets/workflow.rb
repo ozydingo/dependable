@@ -9,22 +9,7 @@
 
 module NiceAssets
   class Workflow
-    @asset_specs = {}
-    class << self
-      attr_accessor :asset_specs
-      protected :asset_specs=
-
-      def inherited(child)
-        child.asset_specs = @asset_specs.deep_dup
-      end
-
-      def process(label, after: [], guard: nil, required: true, include_if: nil)
-        asset_spec = ::NiceAssets::AssetSpecification.new(label, prereq: after, guard: guard, required: required)
-        (asset_spec.known_prereq_labels - @asset_specs.keys).each{|label| raise ArgumentError, "Unrecognized asset prerequisite: \"#{label}\""}
-        @asset_specs[asset_spec.label] = asset_spec
-      end
-    end
-
+    extend Fluid
     attr_reader :assets
 
     def initialize(assets = {})
