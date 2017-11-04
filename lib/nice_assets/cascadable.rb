@@ -1,5 +1,5 @@
 module NiceAssets
-  module Sequential
+  module Cascadable
     def sequence
       base? ? {} : superclass.sequence.merge(@sequence)
     end
@@ -22,7 +22,7 @@ module NiceAssets
     end
 
     def base?
-      self == ::NiceAssets::Sequence
+      self == ::NiceAssets::Cascade
     end
 
     def validate_label(label)

@@ -1,21 +1,11 @@
 module NiceAssets
-  class Sequence
-    extend Sequential
+  class Cascade
+    extend Cascadable
     attr_reader :assets
 
     def initialize(*assets)
       assets.each{|label| validate_label(label)}
       @assets = assets.map{|asset| [asset, true]}.to_h
-    end
-
-    def add_asset(label)
-      validate_label(label)
-      @assets[label] = true
-    end
-
-    def remove_asset(label)
-      validate_label(label)
-      @assets.delete(label)
     end
 
     def sequence

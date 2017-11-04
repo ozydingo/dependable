@@ -1,9 +1,9 @@
-class TranscriptionSequence < NiceAssets::Sequence
+class TranscriptionCascade < NiceAssets::Cascade
   process :source
   process :stream, after: :source
   process :audio, after: ->{:audio_input}, required: false
   process :transcript, after: [:stream, :audio]
-  process :cc_encoding, include_if: => :cc_encoding_requested?, after: :source
+  process :cc_encoding, include_if: :cc_encoding_requested?, after: :source
 
   def audio_input
     source_available? ? :source : :stream
