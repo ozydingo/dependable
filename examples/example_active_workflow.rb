@@ -1,18 +1,9 @@
 class Transcript < ActiveRecord::Base
-  nice_assets do
+  extend NiceAsset:ActiveFluid
+  active_workflow(:jobs) do
     asset :edit_job
     asset :qa_job, skip_if: :skip_qa?
   end
-end
-
-class TranscriptWorkflow
-  include NiceAssets::ActiveWorkflow
-
-  def initialize(record)
-    @record = record
-  end
-
-
 end
 
 class TranscriptionService

@@ -1,5 +1,12 @@
 module NiceAssets
   class AssetSeeker
+    attr_reader :source_klass, :assets
+
+    def initialize(source_klass)
+      @source_klass = source_klass
+      @assets = {}
+    end
+
     attr_reader :owner
 
     def initialize(resource_class, label, scope = nil,

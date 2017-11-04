@@ -1,4 +1,4 @@
-module NiceAsset
+module NiceAssets
   module Sequential
     def sequence
       base? ? {} : superclass.sequence.merge(@sequence)
@@ -26,7 +26,7 @@ module NiceAsset
     end
 
     def validate_label(label)
-      sequence.key?(label) or raise ArgumentError, "Unrecognized asset labels: #{label}"}
+      sequence.key?(label) or raise ArgumentError, "Unrecognized asset labels: #{label}"
     end
   end
 end

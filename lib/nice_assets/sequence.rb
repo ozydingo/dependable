@@ -36,14 +36,14 @@ module NiceAssets
       sequence.keys.select{|label| prereqs_ready?(label)}
     end
 
-    def asset?(label)
+    def asset_ready?(label)
       validate_label(label)
       @assets.key?(label)
     end
 
     def prereqs_ready?(label)
       validate_label(label)
-      prereqs(label).all?{|prereq| asset?(prereq)}
+      prereqs(label).all?{|prereq| asset_ready?(prereq)}
     end
 
     # Resolved prerequisites for given label
@@ -76,11 +76,11 @@ module NiceAssets
     end
 
     def resolve_prereq(reqspec)
-      case reqsoec
-      when Symbol then reqsoec
-      when Proc then send(reqsoec.call)
-      when Hash then evaluate_conditional_prereq(reqsoec)
-      else raise "Invalid asset requirement for #{self}: #{reqsoec}. Must be a Symbol, Proc, or Hash!"
+      case reqspec
+      when Symbol then reqspec
+      when Proc then send(reqspec.call)
+      when Hash then evaluate_conditional_prereq(reqspec)
+      else raise "Invalid asset requirement for #{self}: #{reqspec}. Must be a Symbol, Proc, or Hash!"
       end
     end
 

@@ -74,7 +74,6 @@ module NiceAssets
     end
 
     def add_workflow_callback(callback, event, positions)
-      [*callback].each do
       validate_callback(callback)
       @workflow_callbacks[event] ||= {}
       @workflow_callbacks[event][position] = callback

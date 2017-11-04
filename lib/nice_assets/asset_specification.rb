@@ -1,18 +1,18 @@
 module NiceAssets
   class AssetSpecification
-    attr_reader :label, :required, :prereqs, :wait_until, :skip_if
+    attr_reader :label, :required, :prereqs, :wait_until, :include_if
 
-    def initialize(label, required: true, prereq: nil, wait_until: nil, skip_if: nil)
+    def initialize(label, required: true, prereq: nil, wait_until: nil, include_if: nil)
       @label = label
       @required = !!required
       @prereqs = [prereq].flatten.compact
       @wait_until = [wait_until].flatten.compact
-      @skip_if = [skip_if].flatten.compact
+      @include_if = [include_if].flatten.compact
 
       validate_label
       validate_prereqs
       validate_wait_until
-      validate_skip_if
+      validate_include_if
     end
 
     alias_method :required?, :required
@@ -52,9 +52,9 @@ module NiceAssets
       end
     end
 
-    def validate_skip_if
-      @skip_if.each do |condition|
-        condition.is_a?(Proc) || condition.is_a?(Symbol) or raise ArgumentError, "Invalid skip_if: Must be a Symbol or Proc"
+    def validate_include_if
+      @include_if.each do |condition|
+        condition.is_a?(Proc) || condition.is_a?(Symbol) or raise ArgumentError, "Invalid include_if: Must be a Symbol or Proc"
       end
     end
   end

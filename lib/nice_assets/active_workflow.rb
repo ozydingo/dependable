@@ -1,36 +1,25 @@
 module NiceAssets
-  module ActiveWorkflow
-    extend ActiveSupport::Concern
-    extend NiceAssets::AbstractInterface
+  class ActiveWorkflow
+    class << self
+      attr_reader :commish, :workflow
+      attr_accessor :source_klass
 
-    implements :workflow_assets
-    implements :workflow_options
-
-    def resume_assets
-      need_next = workflow.next_nodes
-      need_next.select{|label| workflow_assets[label].blank?}.each{|label| create_asset(label)}
-      commissioner.request_next_assets
-    end
-
-    def workflow
-      self.class::Workflow.new(workflow_assets, workflow_options)
-    end
-
-    module ClassMethods
-      def define_assets(&blk)
-        define_method :workflow_assets do
-        end
+      def inherited(child)
+        child.initialize_workflow(self)
       end
 
-      def define_workflow(&blk)
-        class Workflow < NiceAssets::Workflow
-          instance_eval(&blk)
-
-          def method_missing(name)
-            # ??
-          end
-        end
+      def initailize_workflow(parent)
+        @commish = ::NiceAssets::Commish.new(parent.commish)
+        @workflow = ::NiceAssets::Workflow.new(parent.workflow)
+        @source_klass = parent.source_klass
       end
+    end
+
+    def initialize(record)
+      @record = record
+    end
+
+    def resume
     end
   end
 end
