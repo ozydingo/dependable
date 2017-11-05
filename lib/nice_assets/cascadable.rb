@@ -4,10 +4,14 @@ module NiceAssets
       base? ? {} : superclass.sequence.merge(@sequence)
     end
 
-    def process(label, required: true, after: [], wait_until: nil, include_if: nil)
-      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: required, prereq: after, wait_until: wait_until, include_if: include_if)
-      asset_spec.known_prereq_labels.each{|label| validate_label(label)}
-      @sequence[asset_spec.label] = asset_spec
+    def cascade(label, after: [], required: true)
+      point = ::NiceAssets::CascadePoint.new(label, prereq: after, required: required)
+      point.known_prereqs.each{|label| validate_label(label)}
+      @sequence[point.label] = point
+    end
+
+    def required
+      sequence.select{|label, point| point.required?}
     end
 
     protected

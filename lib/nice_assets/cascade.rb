@@ -1,39 +1,39 @@
 module NiceAssets
   class Cascade
     extend Cascadable
-    attr_reader :assets
+    attr_reader :points
 
-    def initialize(*assets)
-      assets.each{|label| validate_label(label)}
-      @assets = assets.map{|asset| [asset, true]}.to_h
+    def initialize(*points)
+      points.each{|label| validate_label(label)}
+      @points = points.map{|asset| [asset, true]}.to_h
     end
 
     def sequence
       self.class.sequence
     end
 
-    def required_assets
-      sequence.select{|label, asset_spec| asset_spec.required?}
+    def required
+      sequence.select{|label, point| point.required?}
     end
 
-    # Asset that are required to reach finish and ready to request
-    def next_assets
-      remaining_assets.select{|label| prereqs_ready?(label)}
+    # Cascade points that are required to reach finish and ready to request
+    def next_points
+      remaining_points.select{|label| prereqs_ready?(label)}
     end
 
-    # All assets that ar ready to process right now
-    def requestable_assets
+    # All cascade points that are ready to process right now
+    def available_points
       sequence.keys.select{|label| prereqs_ready?(label)}
     end
 
-    def asset_ready?(label)
+    def point_ready?(label)
       validate_label(label)
-      @assets.key?(label)
+      @points.key?(label)
     end
 
     def prereqs_ready?(label)
       validate_label(label)
-      prereqs(label).all?{|prereq| asset_ready?(prereq)}
+      prereqs(label).all?{|prereq| point_ready?(prereq)}
     end
 
     # Resolved prerequisites for given label
@@ -44,13 +44,13 @@ module NiceAssets
 
     # Prerequisites not yet ready for asset label
     def remaining_prereqs(label)
-      prereqs(label).select{|prereq| !asset_ready?(prereq)}
+      prereqs(label).select{|prereq| !point_ready?(prereq)}
     end
 
-    # Minimal remaining asset labels needed to reach required assets
-    def remaining_assets
+    # Minimal remaining asset labels needed to reach required points
+    def remaining_points
       remaining = []
-      queue = required_assets.keys.select{|label| !asset_ready?(label)}
+      queue = required.keys.select{|label| !point_ready?(label)}
       while label = queue.shift
         remaining << label
         queue |= remaining_prereqs(label) - remaining
