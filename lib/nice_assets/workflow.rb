@@ -13,7 +13,10 @@ module NiceAssets
     attr_reader :assets
 
     def initialize(assets = {})
-      assets.keys.each{|label| validate_label(label)}
+      assets.each do |label, asset|
+        validate_label(label)
+        validate_asset(label, asset)
+      end
       @assets = assets
     end
 
@@ -22,6 +25,7 @@ module NiceAssets
     end
 
     def required_assets
+      # TODO: exclude skip-assets
       asset_specs.select{|label, asset_spec| asset_spec.required?}
     end
 
@@ -52,9 +56,14 @@ module NiceAssets
       return remaining
     end
 
-    # Asset that are required to reach finish and ready to request
+    # Asset labels that are required to reach finish and ready to request
     def next_assets
       remaining_assets.select{|label| prereqs_ready?(label) && !wait?(label)}
+    end
+
+    # All asset labels that are ready to be requested
+    def requestable_assets
+      asset_specs.select{|label| prereqs_ready?(label) && !wait?(label)}
     end
 
     def prereqs_ready?(label)
@@ -64,20 +73,27 @@ module NiceAssets
 
     def wait?(label)
       validate_label(label)
-      asset_specs[label].wait_until.all?{|condition| send(condition)}
+      !asset_specs[label].wait_until.all?{|condition| send(condition)}
     end
+
+    private
 
     def validate_label(label)
       label.is_a?(Symbol) or raise ArgumentError, "Label must be a Symbol"
       asset_specs.key?(label) or raise ArgumentError, "Unrecognized asset label: #{label}"
     end
 
+    def validate_asset(label, asset)
+      # TODO: Don't validate class for input assets
+      asset.is_a?(NiceAssets::Asset) or raise ArgumentError, "Asset must be a NiceAssets::Asset"
+    end
+
     def resolve_prereq(reqspec)
-      case reqsoec
-      when Symbol then reqsoec
-      when Proc then send(reqsoec.call)
-      when Hash then evaluate_conditional_prereq(reqsoec)
-      else raise "Invalid asset requirement for #{self}: #{reqsoec}. Must be a Symbol, Proc, or Hash!"
+      case reqspec
+      when Symbol then reqspec
+      when Proc then send(reqspec.call)
+      when Hash then evaluate_conditional_prereq(reqspec)
+      else raise "Invalid asset requirement for #{self}: #{reqspec}. Must be a Symbol, Proc, or Hash!"
       end
     end
 

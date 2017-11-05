@@ -1,23 +1,21 @@
 module NiceAssets
   class AssetSpecification
-    attr_reader :label, :required, :prereqs, :wait_until, :include_if
+    attr_reader :label, :required, :prereqs, :wait_until
 
-    def initialize(label, required: true, prereq: nil, wait_until: nil, include_if: nil)
+    def initialize(label, required: true, prereq: nil, wait_until: nil)
       @label = label
       @required = !!required
       @prereqs = [prereq].flatten.compact
       @wait_until = [wait_until].flatten.compact
-      @include_if = [include_if].flatten.compact
 
       validate_label
       validate_prereqs
       validate_wait_until
-      validate_include_if
     end
 
     alias_method :required?, :required
 
-    def known_prereq_labels
+    def known_prereqs
       @prereqs.reject{|req| req.is_a?(Proc)}.flat_map do |req|
         case req
         when Hash then req.values
@@ -49,12 +47,6 @@ module NiceAssets
     def validate_wait_until
       @wait_until.each do |condition|
         condition.is_a?(Proc) || condition.is_a?(Symbol) or raise ArgumentError, "Invalid wait_until: Must be a Symbol or Proc"
-      end
-    end
-
-    def validate_include_if
-      @include_if.each do |condition|
-        condition.is_a?(Proc) || condition.is_a?(Symbol) or raise ArgumentError, "Invalid include_if: Must be a Symbol or Proc"
       end
     end
   end

@@ -3,17 +3,29 @@ class TranscriptionWorkflow < NiceAssets::Workflow
   process :stream, after: :source
   process :audio, after: ->{:audio_input}, required: false
   process :transcript, after: [:stream, :audio]
-  process :cc_encoding, :include_if => :cc_encoding_requested?
 
   def audio_input
     source_available? ? :source : :stream
   end
 
   def source_available?
-    assets[:source].present? && !assets[:source].archived?
+    assets[:source] && !assets[:source].archived?
   end
+end
 
-  def cc_encoding_requested?
-    options[:cc_encoding]
+require 'hashie'
+
+class MockAsset < Hashie::Mash
+  include NiceAssets::Asset
+
+  def initialize(hash)
+    super(hash.reverse_merge(
+      ready?: true,
+      archived?: false,
+      :requestable?: true
+      :processing?: true
+      :finished?: true
+      :failed?: true
+    ))
   end
 end

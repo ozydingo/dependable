@@ -15,7 +15,11 @@ module NiceAssets
       end
     end
 
-    def add_callback(callback)
+    def add_workflow_callback(*callbacks)
+      @workflow_klass
+    end
+
+    def add_asset_callback(*callbacks)
       @workflow_klass
     end
 

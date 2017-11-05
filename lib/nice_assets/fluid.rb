@@ -1,6 +1,6 @@
 # TODO:
-# - workflow_callbacks (all)
-# - asset_callbacks (all)
+     # asset roles
+
 
 module NiceAssets
   module Fluid
@@ -13,77 +13,62 @@ module NiceAssets
       base? ? {} : superclass.asset_specs.merge(@asset_specs)
     end
 
-    def workflow_callback(event, position)
+    def workflow_callbacks(event, position)
       callbacks = @workflow_callbacks.dig(event, position)
       callbacks ||= superclass.workflow_callbacks(event, position) unless base?
       return callbacks
     end
 
-    def asset_callback(label, event, position)
+    def asset_callbacks(label, event, position)
       callbacks = @workflow_callbacks.dig(label, event, position)
       callbacks ||= superclass.asset_callbacks(label, event, position) unless base?
       return callbacks
     end
 
-    def process(label, required: true, after: [], wait_until: nil, include_if: nil)
-      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: required, prereq: after, wait_until: wait_until, include_if: include_if)
-      (asset_spec.known_prereq_labels - asset_specs.keys).each{|label| raise ArgumentError, "Unrecognized asset prerequisite: \"#{label}\""}
-      @asset_specs[asset_spec.label] = asset_spec
-    end
-
-    def before_start(*callbacks)
-      add_workflow_callback(:start, :before, callback)
-    end
-
-    def after_start(*callbacks)
-      add_workflow_callback(:start, :after, callback)
-    end
-
-    def before_request(label, *callbacks)
-      add_asset_callback(label, :request, :before)
-    end
-
-    def after_request(label, *callbacks)
-      add_asset_callback(label, :request, :after)
+    def process(label, required: true, after: [], wait_until: nil)
+      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: required, prereq: after, wait_until: wait_until)
+      add_asset(label, asset_spec)
     end
 
     def before_resume(*callbacks)
-      add_workflow_callback(:resume, :before, callback)
+      add_workflow_callbacks(:resume, :before, *callbacks)
     end
 
     def after_resume(*callbacks)
-      add_workflow_callback(:resume, :after, callback)
+      add_workflow_callbacks(:resume, :after, *callbacks)
     end
 
-    def before_finish(label, callback = nil)
-      callback, label = label, nil if callback.nil?
-      if label.nil?
-        add_workflow_callback(:finish, :before)
-      else
-        add_asset_callback(label, :finish, :before)
+    def before_request(label, *callbacks)
+      add_asset_callback(label, :request, :before, *callbacks)
+    end
+
+    def after_request(label, *callbacks)
+      add_asset_callback(label, :request, :after, *callbacks)
+    end
+
+    def before_finish(label, *callbacks)
+      add_asset_callback(label, :finish, :before, *callbacks)
+    end
+
+    def after_finish(label, *callback)
+      add_asset_callback(label, :finish, :after, *callbacks)
+    end
+
+    def add_workflow_callbacks(event, positions, *callbacks)
+      callbacks.each do |callback|
+        validate_callback(callback)
+        @workflow_callbacks[event] ||= {}
+        @workflow_callbacks[event][position] = callback
       end
     end
 
-    def after_finish(label, callback = nil)
-      callback, label = label, nil if callback.nil?
-      if label.nil?
-        add_workflow_callback(:finish, :after)
-      else
-        add_asset_callback(label, :finish, :after)
+    def add_asset_callback(label, event, position, *callbacks)
+      callbacks.each do |callback|
+        validate_callback(callback)
+        @workflow_callbacks[label] ||= {}
+        @workflow_callbacks[label][event] ||= {}
+        @workflow_callbacks[label][event][position] = callback
       end
-    end
-
-    def add_workflow_callback(callback, event, positions)
-      validate_callback(callback)
-      @workflow_callbacks[event] ||= {}
-      @workflow_callbacks[event][position] = callback
-    end
-
-    def add_asset_callback(asset, event, position)
-      validate_callback(callback)
-      @workflow_callbacks[asset] ||= {}
-      @workflow_callbacks[asset][event] ||= {}
-      @workflow_callbacks[asset][event][position] = callback
     end
 
     protected
@@ -100,6 +85,11 @@ module NiceAssets
 
     def validate_callback(callback)
       callback.is_a?(Symbol) || callback.is_a?(Proc) or raise ArgumentError, "Callback must be a Symbol or a Proc"
+    end
+
+    def add_asset(label, spec)
+      (spec.known_prereqs - asset_specs.keys).each{|label| raise ArgumentError, "Unrecognized asset prerequisite: \"#{label}\""}
+      @asset_specs[spec.label] = spec
     end
   end
 end
