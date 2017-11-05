@@ -58,22 +58,17 @@ module NiceAssets
 
     # Asset labels that are required to reach finish and ready to request
     def next_assets
-      remaining_assets.select{|label| prereqs_ready?(label) && !wait?(label)}
+      remaining_assets.select{|label| prereqs_ready?(label)}
     end
 
     # All asset labels that are ready to be requested
     def requestable_assets
-      asset_specs.select{|label| prereqs_ready?(label) && !wait?(label)}
+      asset_specs.select{|label| prereqs_ready?(label)}
     end
 
     def prereqs_ready?(label)
       validate_label(label)
       prereqs(label).all?{|prereq| asset_ready?(prereq)}
-    end
-
-    def wait?(label)
-      validate_label(label)
-      !asset_specs[label].wait_until.all?{|condition| send(condition)}
     end
 
     private
@@ -84,8 +79,22 @@ module NiceAssets
     end
 
     def validate_asset(label, asset)
-      # TODO: Don't validate class for input assets
-      asset.is_a?(NiceAssets::Asset) or raise ArgumentError, "Asset must be a NiceAssets::Asset"
+      validate_label(label)
+      if !asset.nil?
+        if asset_specs[label].read_only?
+          valid_reference?(asset) or raise ArgumentError, "Reference must either be boolean or respond to `finished?`"
+        else
+          valid_processable?(asset) or raise ArgumentError, "Processable Asset must be a NiceAssets::Asset"
+        end
+      end
+    end
+
+    def valid_processable?(asset)
+      asset.is_a?(NiceAssets::Asset)
+    end
+
+    def valid_reference?(asset)
+      asset == true || asset = false || asset.respond_to?(:finished?)
     end
 
     def resolve_prereq(reqspec)

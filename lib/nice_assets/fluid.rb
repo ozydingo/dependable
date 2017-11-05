@@ -25,8 +25,18 @@ module NiceAssets
       return callbacks
     end
 
-    def process(label, required: true, after: [], wait_until: nil)
-      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: required, prereq: after, wait_until: wait_until)
+    def output(label, after: [])
+      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: true, prereq: after)
+      add_asset(label, asset_spec)
+    end
+
+    def link(label, after: [])
+      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: false, prereq: after)
+      add_asset(label, asset_spec)
+    end
+
+    def reference(label)
+      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: false, read_only: true)
       add_asset(label, asset_spec)
     end
 

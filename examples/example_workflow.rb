@@ -1,8 +1,8 @@
 class TranscriptionWorkflow < NiceAssets::Workflow
-  process :source
-  process :stream, after: :source
-  process :audio, after: ->{:audio_input}, required: false
-  process :transcript, after: [:stream, :audio]
+  reference :source
+  link :stream, after: :source
+  link :audio, after: ->{:audio_input}
+  output :transcript, after: [:stream, :audio]
 
   def audio_input
     source_available? ? :source : :stream
@@ -18,14 +18,17 @@ require 'hashie'
 class MockAsset < Hashie::Mash
   include NiceAssets::Asset
 
-  def initialize(hash)
-    super(hash.reverse_merge(
+  def initialize(attrs = {})
+    default_attrs = {
       ready?: true,
       archived?: false,
-      :requestable?: true
-      :processing?: true
-      :finished?: true
-      :failed?: true
-    ))
+      requestable?: true,
+      processing?: true,
+      finished?: true,
+      failed?: true
+    }
+    super(default_attrs.merge(attrs))
   end
 end
+
+asset = MockAsset.new

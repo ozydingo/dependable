@@ -1,5 +1,6 @@
 class Transcript < ActiveRecord::Base
   extend NiceAsset:ActiveFluid
+
   active_workflow(:jobs) do
     asset :edit_job
     asset :qa_job, skip_if: :skip_qa?
