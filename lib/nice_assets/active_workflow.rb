@@ -8,8 +8,8 @@ module NiceAssets
         child.initialize_workflow(self)
       end
 
-      def initailize_workflow(parent)
-        @commish = ::NiceAssets::Commish.new(parent.commish)
+      def initialize_workflow(parent)
+        # @commish = ::NiceAssets::Commish.new(parent.commish)
         @workflow = ::NiceAssets::Workflow.new(parent.workflow)
         @source_klass = parent.source_klass
       end
