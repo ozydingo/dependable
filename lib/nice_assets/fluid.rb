@@ -20,7 +20,7 @@ module NiceAssets
     end
 
     def asset_callbacks(label, event, position)
-      callbacks = @workflow_callbacks.dig(label, event, position)
+      callbacks = @asset_callbacks.dig(label, event, position)
       callbacks ||= superclass.asset_callbacks(label, event, position) unless base?
       return callbacks
     end
@@ -75,9 +75,9 @@ module NiceAssets
     def add_asset_callback(label, event, position, *callbacks)
       callbacks.each do |callback|
         validate_callback(callback)
-        @workflow_callbacks[label] ||= {}
-        @workflow_callbacks[label][event] ||= {}
-        @workflow_callbacks[label][event][position] = callback
+        @asset_callbacks[label] ||= {}
+        @asset_callbacks[label][event] ||= {}
+        @asset_callbacks[label][event][position] = callback
       end
     end
 
