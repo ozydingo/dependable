@@ -20,6 +20,14 @@ module NiceAssets
       @assets = assets
     end
 
+    def resume
+      perform_callbacks(:resume, :before)
+      next_assets.select{|label| assets.key?(label)}.each do |label|
+        assets[label].request
+      end
+      perform_callbacks(:resume, :after)
+    end
+
     def asset_specs
       self.class.asset_specs
     end
