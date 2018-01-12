@@ -20,20 +20,34 @@ module NiceAssets
       @assets = assets
     end
 
+    def asset_specs
+      self.class.asset_specs
+    end
+
     def resume
       perform_callbacks(:resume, :before)
-      next_assets.select{|label| assets.key?(label)}.each do |label|
+      next_assets_to_process.select{|label| assets.key?(label)}.each do |label|
         assets[label].request
       end
       perform_callbacks(:resume, :after)
     end
 
-    def asset_specs
-      self.class.asset_specs
+    def next_assets_to_process
+      asset_needed_to_finish.select{|label| prereqs_ready?(label)}
+    end
+
+    def asset_needed_to_finish
+      remaining = []
+      queue = required_assets.keys.select{|label| !asset_ready?(label)}
+      while label = queue.shift
+        remaining << label
+        queue |= remaining_prereqs(label) - remaining
+      end
+      return remaining
     end
 
     def required_assets
-      # TODO: exclude skip-assets
+      # TODO: exclude dytnamically skipped assets
       asset_specs.select{|label, asset_spec| asset_spec.required?}
     end
 
@@ -51,27 +65,6 @@ module NiceAssets
     # Prerequisites not yet ready for asset label
     def remaining_prereqs(label)
       prereqs(label).select{|prereq| !asset_ready?(prereq)}
-    end
-
-    # Minimal remaining asset labels needed to reach required assets
-    def remaining_assets
-      remaining = []
-      queue = required_assets.keys.select{|label| !asset_ready?(label)}
-      while label = queue.shift
-        remaining << label
-        queue |= remaining_prereqs(label) - remaining
-      end
-      return remaining
-    end
-
-    # Asset labels that are required to reach finish and ready to request
-    def next_assets
-      remaining_assets.select{|label| prereqs_ready?(label)}
-    end
-
-    # All asset labels that are ready to be requested
-    def requestable_assets
-      asset_specs.select{|label| prereqs_ready?(label)}
     end
 
     def prereqs_ready?(label)
