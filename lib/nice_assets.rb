@@ -3,6 +3,7 @@ require "nice_assets/abstract_interface.rb"
 require "nice_assets/asset_specification.rb"
 require "nice_assets/asset_roster.rb"
 require "nice_assets/asset_workflow.rb"
+require "nice_assets/asset_graph.rb"
 
 # require "nice_assets/asset.rb"
 # require "nice_assets/asset_seeker.rb"

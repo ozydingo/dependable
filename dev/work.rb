@@ -23,6 +23,3 @@ graph.add_node(:audio, after: :source)
 graph.add_node(:stream, after: :audio)
 graph.add_node(:asr, after: :audio)
 graph.add_node(:tx, after: [:asr, :stream])
-
-graph.downstream(:audio)
-graph.downstream(:tx)
