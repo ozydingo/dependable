@@ -1,5 +1,5 @@
 module NiceAssets
-  class AssetSpecification
+  class GraphNodeSpecification
     attr_reader :label, :required, :prereqs, :read_only
 
     class << self

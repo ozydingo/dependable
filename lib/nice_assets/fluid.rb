@@ -26,18 +26,18 @@ module NiceAssets
     end
 
     def output(label, after: [])
-      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: true, prereq: after)
-      add_asset(label, asset_spec)
+      node_spec = ::NiceAssets::GraphNodeSpecification.new(label, required: true, prereq: after)
+      add_asset(label, node_spec)
     end
 
     def link(label, after: [])
-      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: false, prereq: after)
-      add_asset(label, asset_spec)
+      node_spec = ::NiceAssets::GraphNodeSpecification.new(label, required: false, prereq: after)
+      add_asset(label, node_spec)
     end
 
     def reference(label)
-      asset_spec = ::NiceAssets::AssetSpecification.new(label, required: false, read_only: true)
-      add_asset(label, asset_spec)
+      node_spec = ::NiceAssets::GraphNodeSpecification.new(label, required: false, read_only: true)
+      add_asset(label, node_spec)
     end
 
     def before_resume(*callbacks)
