@@ -1,26 +1,8 @@
-Roadmap handle navigation of assets -- knows the map, and what comes next. No knowledge of state or the asset interface (ax?)
+AssetSpecification: Defines how to find, create, and request and asset.
 
-Workflow
-  - Define which assets get requested when, and handles requesting.
-  - No knowledge of ActiveRecord or db: Initialize with labeled assets.
-  - Supports assets being non-NiceAssets for workflow mapping but will refuse to request them (subsumes more naive Roadmap model).
-  - Can define lifecycle events: start, resume, finish, request(label), finish(label), fail(label)
+AssetRoster: List of AssetSpecifications and processing callbacks for each.
 
-AssetPimp
-  - Knows where to find its assets using ActiveRecord
+AssetGraph: Arrangement of asset processing dependencies. Needs only to know which assets are ready, nothing about processing or callbacks.
+ -- Q: Can an AssetGraph be dynamic, or should we switch between static AssetGraphs?
 
-ActiveWorkflow
-  - Uses a Workflow and an AssetPimp to provide a single clean interface to integrating a Workflow into an ActiveRecord model
-
-Primary Use Case:
-
-Service (include ActiveWorkflow)
-  - define asset associations
-  - define workflow
-  - start_processing:
-    - perform start callbacks
-    - resume workflow
-  - resume workflow:
-    - perform workflow resume callbacks
-  - resume workflow until workflow.finished?
-  - perform finish callbacks
+ AssetWorkflow: contains an AssetGraph and an AssetRoster. Initializes with any needed resources (e.g. a Service instance). Calls its AssetRoster to find its current assets. Calls its AssetGraph to determine what's next. Calls the AssetRoster again to create and request necessary assets.
