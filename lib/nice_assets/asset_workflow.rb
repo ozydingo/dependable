@@ -30,15 +30,15 @@ module NiceAssets
 
     def next_assets
       self.class.output_assets.flat_map do |node|
-        self.class.asset_graph.next_nodes_for(node, completed_nodes)
-      end.uniq.select{|name| asset_requestable?(get_asset(name))}
+        self.class.asset_graph.next_nodes_for(node, completed_assets.keys)
+      end.uniq.select{|name| asset_pending?(get_asset(name))}
     end
 
-    def completed_nodes
-      get_all_assets.select{|label, asset| asset_ready?(asset)}.keys
+    def completed_assets
+      get_all_assets.select{|label, asset| asset_ready?(asset)}
     end
 
-    def asset_requestable?(asset)
+    def asset_pending?(asset)
       asset.nil? || asset.pending?
     end
 
