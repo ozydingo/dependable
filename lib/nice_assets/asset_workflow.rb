@@ -29,8 +29,9 @@ module NiceAssets
     end
 
     def next_assets
+      completed = completed_assets.keys
       self.class.output_assets.flat_map do |node|
-        self.class.asset_graph.next_nodes_for(node, completed_assets.keys)
+        self.class.asset_graph.next_nodes_for(node, completed)
       end.uniq.select{|name| asset_pending?(get_asset(name))}
     end
 
