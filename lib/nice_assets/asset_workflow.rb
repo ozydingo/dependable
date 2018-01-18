@@ -29,13 +29,9 @@ module NiceAssets
     end
 
     def next_assets
-      output_nodes.flat_map do |node|
+      self.class.output_assets.flat_map do |node|
         self.class.asset_graph.next_nodes_for(node, completed_nodes)
       end.uniq
-    end
-
-    def output_nodes
-      self.class.asset_roles.select{|label, role| role == "output"}.keys
     end
 
     def completed_nodes

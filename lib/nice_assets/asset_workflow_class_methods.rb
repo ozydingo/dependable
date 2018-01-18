@@ -1,12 +1,12 @@
 module NiceAssets
   module AssetWorkflowClassMethods
-    attr_reader :asset_roster, :asset_graph, :asset_roles, :owner_class
+    attr_reader :asset_roster, :asset_graph, :output_assets, :owner_class
 
     def inherited(child)
       child.instance_eval do
         @asset_roster = NiceAssets::AssetRoster.new
         @asset_graph = NiceAssets::AssetGraph.new
-        @asset_roles = {}
+        @output_assets = []
       end
     end
 
@@ -29,8 +29,12 @@ module NiceAssets
       spec = NiceAssets::AssetSpecification.new(assoc)
       @asset_roster.add_spec(name, spec)
       @asset_graph.add_node(name, after: after)
-      @asset_roles[name] = as
+      @output_assets << name
       return name
+    end
+
+    def outputs(*assets)
+      @output_assets = assets
     end
   end
 end
