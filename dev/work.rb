@@ -7,4 +7,6 @@ class TranscriptionWorkflow < NiceAssets::AssetWorkflow
   asset :asr, ->(s){ where media_file_id: s.media_file_id }, foreign_key: false, after: :audio, class_name: "AsrOutput"
   asset :stream, ->(s){ where media_file_id: s.media_file_id }, foreign_key: false, after: :source, class_name: "StoeStream"
   asset :transcript, after: [:asr, :stream], class_name: "TranscribedTranscript", as: "output"
+
+  outputs :transcript
 end
