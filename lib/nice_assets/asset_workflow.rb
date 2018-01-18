@@ -35,7 +35,11 @@ module NiceAssets
     end
 
     def completed_nodes
-      get_all_assets.select{|label, asset| asset.try!(:ready?)}.keys
+      get_all_assets.select{|label, asset| asset_ready?(asset)}.keys
+    end
+
+    def asset_ready?(asset)
+      asset.try!(:ready?)
     end
   end
 end
