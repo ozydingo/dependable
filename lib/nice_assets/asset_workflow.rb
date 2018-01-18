@@ -7,6 +7,7 @@ module NiceAssets
     attr_reader :owner, :asset_cache
 
     def initialize(owner)
+      owner.is_a?(self.class.owner_class) or raise TypeError, "Wrong owner for #{self.class}: expected #{self.class.owner_class}, got #{owner.class}"
       @owner = owner
       @asset_cache = {}
     end
