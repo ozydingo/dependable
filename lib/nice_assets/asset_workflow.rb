@@ -31,11 +31,15 @@ module NiceAssets
     def next_assets
       self.class.output_assets.flat_map do |node|
         self.class.asset_graph.next_nodes_for(node, completed_nodes)
-      end.uniq
+      end.uniq.select{|name| asset_requestable?(get_asset(name))}
     end
 
     def completed_nodes
       get_all_assets.select{|label, asset| asset_ready?(asset)}.keys
+    end
+
+    def asset_requestable?(asset)
+      asset.nil? || asset.pending?
     end
 
     def asset_ready?(asset)
