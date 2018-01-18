@@ -27,5 +27,19 @@ module NiceAssets
     def clear_asset_cache
       @asset_cache = {}
     end
+
+    def next_assets
+      output_nodes.flat_map do |node|
+        self.class.asset_graph.next_nodes_for(node, completed_nodes)
+      end.uniq
+    end
+
+    def output_nodes
+      self.class.asset_roles.select{|label, role| role == "output"}.keys
+    end
+
+    def completed_nodes
+      get_all_assets.select{|label, asset| asset.try!(:ready?)}.keys
+    end
   end
 end
