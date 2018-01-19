@@ -13,6 +13,7 @@ module NiceAssets
     end
 
     def get_asset(label, reload = false)
+      return nil if ignore_label?(label)
       return @asset_cache[label] if !reload && @asset_cache.key?(label)
       @asset_cache[label] = self.class.asset_roster.find_asset(@owner, label)
     end
@@ -33,9 +34,9 @@ module NiceAssets
     end
 
     def next_assets
-      requested = requested_assets.keys
+      nopes = requested_assets.keys | ignored_labels
       self.class.output_assets.flat_map do |node|
-        self.class.asset_graph.next_nodes_for(node, requested)
+        self.class.asset_graph.next_nodes_for(node, nopes)
       end.uniq.select{|name| asset_pending?(get_asset(name))}
     end
 
@@ -47,12 +48,24 @@ module NiceAssets
       get_all_assets.select{|label, asset| asset_ready?(asset)}
     end
 
+    def ignored_labels
+      self.class.ignore_conditions.select{|label, condition| evaluate_callback(condition)}.keys
+    end
+
+    def evaluate_callback(callback)
+      self.send(callback)
+    end
+
     def asset_pending?(asset)
       asset.nil? || asset.pending?
     end
 
     def asset_ready?(asset)
       asset.try!(:ready?)
+    end
+
+    def ignore_label?(label)
+      self.class.ignore_conditions.key?(label) && evaluate_callback(self.class.ignore_conditions[label])
     end
 
     def find_or_initialize_asset(label)

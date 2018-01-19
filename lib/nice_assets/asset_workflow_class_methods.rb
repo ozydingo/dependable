@@ -1,12 +1,13 @@
 module NiceAssets
   module AssetWorkflowClassMethods
-    attr_reader :asset_roster, :asset_graph, :output_assets, :owner_class
+    attr_reader :asset_roster, :asset_graph, :output_assets, :owner_class, :ignore_conditions
 
     def inherited(child)
       child.instance_eval do
         @asset_roster = NiceAssets::AssetRoster.new
         @asset_graph = NiceAssets::AssetGraph.new
         @output_assets = []
+        @ignore_conditions = {}
       end
     end
 
@@ -19,6 +20,7 @@ module NiceAssets
         after: nil,
         class_name: nil,
         foreign_key: nil,
+        ignore: nil,
         &callback_block)
       defined?(@owner_class) or raise "No owner class defined for #{self}. Please use `owned_by(klass)` first."
 
@@ -28,6 +30,7 @@ module NiceAssets
       spec = NiceAssets::AssetSpecification.new(assoc)
       @asset_roster.add_spec(name, spec)
       @asset_graph.add_node(name, after: after)
+      @ignore_conditions[name] = ignore if ignore
       @output_assets << name
       return name
     end
