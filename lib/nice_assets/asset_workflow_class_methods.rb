@@ -17,7 +17,6 @@ module NiceAssets
 
     def asset(name, scope = nil,
         after: nil,
-        as: "asset",
         class_name: nil,
         foreign_key: nil,
         &callback_block)
