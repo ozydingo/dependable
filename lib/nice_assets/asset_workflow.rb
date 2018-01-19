@@ -46,5 +46,9 @@ module NiceAssets
     def asset_ready?(asset)
       asset.try!(:ready?)
     end
+
+    def assets_finished?
+      get_all_assets.all?{|label, asset| asset_ready?(asset)}
+    end
   end
 end
