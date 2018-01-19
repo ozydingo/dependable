@@ -14,6 +14,16 @@ module NiceAssets
       @roster[label].find_asset(owner)
     end
 
+    def build_asset(owner, label)
+      validate_listed(label)
+      @roster[label].initialize_asset(owner)
+    end
+
+    def create_asset(owner, label)
+      validate_listed(label)
+      @roster[label].create_asset(owner)
+    end
+
     def find_all_assets(owner)
       @roster.map do |label, spec|
         [label, spec.find_asset(owner)]

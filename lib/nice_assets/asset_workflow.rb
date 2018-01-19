@@ -28,6 +28,10 @@ module NiceAssets
       @asset_cache = {}
     end
 
+    def resume
+      next_assets.each{|label| request_label(label)}
+    end
+
     def next_assets
       completed = completed_assets.keys
       self.class.output_assets.flat_map do |node|
@@ -45,6 +49,26 @@ module NiceAssets
 
     def asset_ready?(asset)
       asset.try!(:ready?)
+    end
+
+    def find_or_initialize_asset(label)
+      get_asset(label)
+      @asset_cache[label] ||= self.class.asset_roster.build_asset(@owner, label)
+    end
+
+    def find_or_create_asset(label)
+      get_asset(label)
+      @asset_cache[label] ||= self.class.asset_roster.create_asset(@owner, label)
+    end
+
+    def request_label(label)
+      # TODO: allow locking to be disabled to customized (i.e. different asset guardian)
+      asset = @owner.with_lock{ find_or_create_asset(label) }
+      request_asset(asset)
+    end
+
+    def request_asset(asset)
+      asset.request_processing
     end
 
     def assets_finished?
