@@ -9,4 +9,8 @@ class TranscriptionWorkflow < NiceAssets::AssetWorkflow
   asset :transcript, after: [:asr, :stream], class_name: "TranscribedTranscript", as: "output"
 
   outputs :transcript
+
+  def request_asset(asset)
+    puts "DEBUG: requesting #{asset}"
+  end
 end
