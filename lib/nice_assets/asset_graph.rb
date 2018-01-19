@@ -38,6 +38,7 @@ module NiceAssets
     end
 
     def remaining_nodes_to(output_node, completed_nodes)
+      return [] if completed_nodes.include?(output_node)
       remaining = []
       queue = [output_node]
       while label = queue.shift
