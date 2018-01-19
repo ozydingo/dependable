@@ -39,7 +39,7 @@ module NiceAssets
 
     def remaining_nodes_to(output_node, completed_nodes)
       remaining = []
-      queue = incomplete_prerequisites(output_node, completed_nodes)
+      queue = [output_node]
       while label = queue.shift
         remaining << label
         queue |= incomplete_prerequisites(label, completed_nodes) - remaining
