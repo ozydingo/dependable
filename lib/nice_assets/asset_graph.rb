@@ -5,6 +5,7 @@ module NiceAssets
     end
 
     def add_node(name, after: nil)
+      !node?(name) or raise "Already defined a node named #{name}"
       prerequisites = [*after]
       prerequisites.each{|node| validate_node(node)}
       @nodes[name] = {after: prerequisites}
