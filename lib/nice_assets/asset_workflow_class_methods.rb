@@ -1,6 +1,8 @@
 module NiceAssets
   module AssetWorkflowClassMethods
-    attr_reader :asset_roster, :asset_graph, :output_assets, :owner_class, :ignore_conditions
+    attr_reader :owner_class
+    attr_reader :asset_roster, :asset_graph
+    attr_reader :output_assets, :checkpoints, :ignore_conditions
 
     def inherited(child)
       child.instance_eval do
@@ -8,6 +10,7 @@ module NiceAssets
         @asset_graph = NiceAssets::AssetGraph.new
         @output_assets = []
         @ignore_conditions = {}
+        @checkpoints = {}
       end
     end
 
@@ -33,6 +36,15 @@ module NiceAssets
       @ignore_conditions[name] = ignore if ignore
       @output_assets << name
       return name
+    end
+
+    def checkpoint(name, condition = name,
+        after: nil,
+        ignore: nil)
+      @asset_graph.add_node(name, after: after)
+      @ignore_conditions[name] = ignore if ignore
+      @output_assets << name
+      @checkpoints[name] = condition
     end
 
     def outputs(*assets)

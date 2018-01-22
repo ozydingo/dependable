@@ -25,6 +25,17 @@ module NiceAssets
       end.to_h
     end
 
+    def checkpoint_value(label)
+      return nil if ignore_label?(label)
+      evaluate_callback(self.class.checkpoints[label])
+    end
+
+    def checkpoint_values
+      self.class.checkpoints.map do |label, cond|
+        [label, checkpoint_value(label)]
+      end.to_h
+    end
+
     def clear_asset_cache
       @asset_cache = {}
     end
@@ -34,10 +45,11 @@ module NiceAssets
     end
 
     def next_assets
-      nopes = requested_assets.keys | ignored_labels
-      self.class.output_assets.flat_map do |node|
+      nopes = requested_assets.keys | completed_checkpoints.keys | ignored_labels
+      next_nodes = self.class.output_assets.flat_map do |node|
         self.class.asset_graph.next_nodes_for(node, nopes)
-      end.uniq.select{|name| asset_pending?(get_asset(name))}
+      end.uniq
+      return next_nodes.select{|name| self.class.asset_roster.listed?(name) && asset_pending?(get_asset(name))}
     end
 
     def requested_assets
@@ -46,6 +58,10 @@ module NiceAssets
 
     def completed_assets
       get_all_assets.select{|label, asset| asset_ready?(asset)}
+    end
+
+    def completed_checkpoints
+      checkpoint_values.select{|label, value| value}
     end
 
     def ignored_labels
