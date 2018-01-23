@@ -41,7 +41,11 @@ module NiceAssets
     end
 
     def resume
-      next_assets.each{|label| request_label(label)}
+      clear_asset_cache
+      next_assets.each do |label|
+        @owner.with_lock{ find_or_create_asset(label) }
+        request_asset(label)
+      end
     end
 
     def next_assets
@@ -49,15 +53,15 @@ module NiceAssets
       next_nodes = self.class.output_assets.flat_map do |node|
         self.class.asset_graph.next_nodes_for(node, nopes)
       end.uniq
-      return next_nodes.select{|name| self.class.asset_roster.listed?(name) && asset_pending?(get_asset(name))}
+      return next_nodes.select{|name| self.class.asset_roster.listed?(name) && asset_pending?(name)}
     end
 
     def requested_assets
-      get_all_assets.select{|label, asset| !asset_pending?(asset)}
+      get_all_assets.select{|label, asset| !asset_pending?(label)}
     end
 
     def completed_assets
-      get_all_assets.select{|label, asset| asset_ready?(asset)}
+      get_all_assets.select{|label, asset| asset_ready?(label)}
     end
 
     def completed_checkpoints
@@ -70,14 +74,6 @@ module NiceAssets
 
     def evaluate_callback(callback)
       self.send(callback)
-    end
-
-    def asset_pending?(asset)
-      asset.nil? || asset.pending?
-    end
-
-    def asset_ready?(asset)
-      asset.try!(:ready?)
     end
 
     def ignore_label?(label)
@@ -94,18 +90,21 @@ module NiceAssets
       @asset_cache[label] ||= self.class.asset_roster.create_asset(@owner, label)
     end
 
-    def request_label(label)
-      # TODO: allow locking to be disabled to customized (i.e. different asset guardian)
-      asset = @owner.with_lock{ find_or_create_asset(label) }
-      request_asset(asset)
+    def request_asset(label)
+      get_asset(label).request_processing
     end
 
-    def request_asset(asset)
-      asset.request_processing
+    def asset_pending?(label)
+      asset = get_asset(label)
+      asset.nil? || asset.pending?
+    end
+
+    def asset_ready?(label)
+      get_asset(label).try!(:ready?)
     end
 
     def assets_finished?
-      get_all_assets.all?{|label, asset| asset_ready?(asset)}
+      get_all_assets.all?{|label, asset| asset_ready?(label)}
     end
   end
 end
