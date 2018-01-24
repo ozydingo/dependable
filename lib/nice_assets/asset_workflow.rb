@@ -12,6 +12,7 @@ module NiceAssets
       @roster = NiceAssets::AssetRoster.new(owner, self.class.asset_specs)
     end
 
+    # TODO: prevent race condition calling request twice
     def resume
       @roster.clear
       next_assets.each do |label|
