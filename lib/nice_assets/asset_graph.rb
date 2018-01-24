@@ -24,19 +24,9 @@ module NiceAssets
       @nodes[name][:after].dup
     end
 
-    def prerequisites_complete?(name, completed_node_cache)
-      validate_node(name)
-      prerequisites(name).all?{|pre| node_complete?(pre, completed_node_cache)}
-    end
-
-    def next_nodes_for(output_node, completed_node_cache)
-      remaining = remaining_nodes_to(output_node, completed_node_cache)
-      return remaining.select{|node| prerequisites_complete?(node, completed_node_cache)}
-    end
-
-    def remaining_nodes_to(output_node, completed_node_cache)
+    def remaining_nodes_to(output_nodes, completed_node_cache)
       remaining = []
-      queue = [output_node]
+      queue = [*output_nodes]
       while label = queue.shift
         next if node_complete?(label, completed_node_cache)
         remaining << label

@@ -26,10 +26,14 @@ module NiceAssets
     end
 
     def next_assets
-      next_nodes = self.class.output_assets.flat_map do |node|
-        self.class.asset_graph.next_nodes_for(node, self)
-      end.uniq
-      return next_nodes.select{|name| self.class.asset_specs.keys.include?(name) && asset_pending?(name)}
+      remaining = self.class.asset_graph.remaining_nodes_to(self.class.output_assets, self)
+      return remaining.select{|node| node_type(node) == "asset" && prerequisites_ready?(node)}
+    end
+
+    def prerequisites_ready?(node)
+      self.class.asset_graph.prerequisites(node).all? do |node|
+        node_ready?(node)
+      end
     end
 
     def node_type(name)
@@ -51,16 +55,13 @@ module NiceAssets
       end
     end
 
-    def completed_assets
-      self.class.asset_specs.keys.select{|label| asset_ready?(label)}
-    end
-
-    def completed_checkpoints
-      self.class.checkpoints.select{|label, cond| evaluate_callback(cond)}.keys
-    end
-
-    def ignored_labels
-      self.class.ignore_conditions.select{|label, condition| evaluate_callback(condition)}.keys
+    def node_ready?(name)
+      return true if ignore_label?(name)
+      case node_type(name)
+      when "asset" then asset_ready?(name)
+      when "checkpoint" then checkpoint_complete?(name)
+      else raise "No node named #{name} (#{name.class})"
+      end
     end
 
     def ignore_label?(label)
