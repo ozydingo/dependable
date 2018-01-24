@@ -26,19 +26,29 @@ module NiceAssets
     end
 
     def next_assets
-      completed_nodes = completed_graph_nodes
       next_nodes = self.class.output_assets.flat_map do |node|
-        self.class.asset_graph.next_nodes_for(node, completed_nodes)
+        self.class.asset_graph.next_nodes_for(node, self)
       end.uniq
       return next_nodes.select{|name| self.class.asset_specs.keys.include?(name) && asset_pending?(name)}
     end
 
-    def completed_graph_nodes
-      requested_assets | completed_checkpoints | ignored_labels
+    def node_type(name)
+      if self.class.asset_specs.key?(name)
+        "asset"
+      elsif self.class.checkpoints.key?(name)
+        "checkpoint"
+      else
+        nil
+      end
     end
 
-    def requested_assets
-      self.class.asset_specs.keys.select{|label| !asset_pending?(label)}
+    def node_pending?(name)
+      return false if ignore_label?(name)
+      case node_type(name)
+      when "asset" then asset_pending?(name)
+      when "checkpoint" then !checkpoint_complete?(name)
+      else raise "No node named #{name} (#{name.class})"
+      end
     end
 
     def completed_assets
@@ -64,6 +74,10 @@ module NiceAssets
 
     def asset_ready?(label)
       @roster.fetch(label).try!(:ready?)
+    end
+
+    def checkpoint_complete?(label)
+      evaluate_callback(self.class.checkpoints[label])
     end
 
     def assets_finished?

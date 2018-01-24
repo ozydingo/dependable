@@ -24,26 +24,33 @@ module NiceAssets
       @nodes[name][:after].dup
     end
 
-    def prerequisites_complete?(name, completed_nodes)
+    def prerequisites_complete?(name, completed_node_cache)
       validate_node(name)
-      completed_nodes.each{|node| validate_node(node)}
-      (prerequisites(name) - completed_nodes).empty?
+      prerequisites(name).all?{|pre| node_complete?(pre, completed_node_cache)}
     end
 
-    def next_nodes_for(output_node, completed_nodes)
-      remaining_nodes_to(output_node, completed_nodes).select{|node| prerequisites_complete?(node, completed_nodes)}
+    def next_nodes_for(output_node, completed_node_cache)
+      remaining = remaining_nodes_to(output_node, completed_node_cache)
+      return remaining.select{|node| prerequisites_complete?(node, completed_node_cache)}
     end
 
-    def remaining_nodes_to(output_node, completed_nodes)
-      completed_nodes.each{|node| validate_node(node)}
+    def remaining_nodes_to(output_node, completed_node_cache)
       remaining = []
       queue = [output_node]
       while label = queue.shift
-        next if completed_nodes.include?(label)
+        next if node_complete?(label, completed_node_cache)
         remaining << label
         queue |= prerequisites(label) - remaining
       end
       return remaining
+    end
+
+    def node_complete?(name, completed_node_cache)
+      case completed_node_cache
+      when Array then completed_node_cache.include?(name)
+      when NiceAssets::AssetWorkflow then !completed_node_cache.node_pending?(name)
+      else raise TypeError, "Wrong type for completed_node_cache: must be Array or AssetWorkflow"
+      end
     end
   end
 end
