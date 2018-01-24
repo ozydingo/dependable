@@ -19,15 +19,15 @@ module NiceAssets
       node?(name) or raise "No asset node named #{name} (#{name.class})"
     end
 
+    def prerequisites(name)
+      validate_node(name)
+      @nodes[name][:after].dup
+    end
+
     def prerequisites_complete?(name, completed_nodes)
       validate_node(name)
       completed_nodes.each{|node| validate_node(node)}
       (prerequisites(name) - completed_nodes).empty?
-    end
-
-    def prerequisites(name)
-      validate_node(name)
-      @nodes[name][:after].dup
     end
 
     def next_nodes_for(output_node, completed_nodes)
