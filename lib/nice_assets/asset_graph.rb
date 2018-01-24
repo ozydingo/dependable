@@ -39,20 +39,15 @@ module NiceAssets
     end
 
     def remaining_nodes_to(output_node, completed_nodes)
-      return [] if completed_nodes.include?(output_node)
+      completed_nodes.each{|node| validate_node(node)}
       remaining = []
       queue = [output_node]
       while label = queue.shift
+        next if completed_nodes.include?(label)
         remaining << label
-        queue |= incomplete_prerequisites(label, completed_nodes) - remaining
+        queue |= prerequisites(label) - remaining
       end
       return remaining
-    end
-
-    def incomplete_prerequisites(node, completed_nodes)
-      validate_node(node)
-      completed_nodes.each{|node| validate_node(node)}
-      prerequisites(node) - completed_nodes
     end
   end
 end
