@@ -19,7 +19,7 @@ module NiceAssets
       node?(name) or raise "No asset node named #{name} (#{name.class})"
     end
 
-    def ready_to_process?(name, completed_nodes)
+    def prerequisites_complete?(name, completed_nodes)
       validate_node(name)
       completed_nodes.each{|node| validate_node(node)}
       (prerequisites(name) - completed_nodes).empty?
@@ -31,11 +31,7 @@ module NiceAssets
     end
 
     def next_nodes_for(output_node, completed_nodes)
-      remaining_nodes_to(output_node, completed_nodes).select{|node| ready_to_process?(node, completed_nodes)}
-    end
-
-    def ready_to_process(completed_nodes)
-      @node.keys.select{|name| ready_to_process?(name, completed_nodes)}
+      remaining_nodes_to(output_node, completed_nodes).select{|node| prerequisites_complete?(node, completed_nodes)}
     end
 
     def remaining_nodes_to(output_node, completed_nodes)
