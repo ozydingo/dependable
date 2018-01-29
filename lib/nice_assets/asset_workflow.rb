@@ -9,7 +9,15 @@ module NiceAssets
     def initialize(owner)
       owner.is_a?(self.class.owner_class) or raise TypeError, "Wrong owner for #{self.class}: expected #{self.class.owner_class}, got #{owner.class}"
       @owner = owner
-      @roster = NiceAssets::AssetRoster.new(owner, self.class.asset_specs)
+      @roster = NiceAssets::AssetRoster.new(self)
+    end
+
+    def graph
+      self.class.asset_graph
+    end
+
+    def manifest
+      self.class.asset_manifest
     end
 
     # TODO: prevent race condition calling request twice
@@ -26,29 +34,19 @@ module NiceAssets
     end
 
     def next_assets
-      remaining = self.class.asset_graph.remaining_nodes_to(self.class.output_assets, self)
-      return remaining.select{|node| node_type(node) == "asset" && prerequisites_ready?(node)}
+      remaining = graph.remaining_nodes_to(self.class.output_assets, self)
+      return remaining.select{|node| manifest.asset?(node) && prerequisites_ready?(node)}
     end
 
     def prerequisites_ready?(node)
-      self.class.asset_graph.prerequisites(node).all? do |node|
+      graph.prerequisites(node).all? do |node|
         node_ready?(node)
-      end
-    end
-
-    def node_type(name)
-      if self.class.asset_specs.key?(name)
-        "asset"
-      elsif self.class.checkpoints.key?(name)
-        "checkpoint"
-      else
-        nil
       end
     end
 
     def node_pending?(name)
       return false if ignore_label?(name)
-      case node_type(name)
+      case manifest.node_type(name)
       when "asset" then asset_pending?(name)
       when "checkpoint" then !checkpoint_complete?(name)
       else raise "No node named #{name} (#{name.class})"
@@ -57,7 +55,7 @@ module NiceAssets
 
     def node_ready?(name)
       return true if ignore_label?(name)
-      case node_type(name)
+      case manifest.node_type(name)
       when "asset" then asset_ready?(name)
       when "checkpoint" then checkpoint_complete?(name)
       else raise "No node named #{name} (#{name.class})"
@@ -68,7 +66,7 @@ module NiceAssets
       self.class.ignore_conditions.key?(label) && evaluate_callback(self.class.ignore_conditions[label])
     end
 
-    def asset_pending?(label)
+   def asset_pending?(label)
       asset = @roster.fetch(label)
       asset.nil? || asset.pending?
     end
@@ -78,11 +76,11 @@ module NiceAssets
     end
 
     def checkpoint_complete?(label)
-      evaluate_callback(self.class.checkpoints[label])
+      !!@roster.fetch(label)
     end
 
     def assets_finished?
-      self.class.asset_specs.keys.all?{|label| asset_ready?(label)}
+      manifest.asset_names.all?{|label| asset_ready?(label)}
     end
 
     def evaluate_callback(callback)

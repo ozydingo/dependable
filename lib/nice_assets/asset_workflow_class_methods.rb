@@ -1,13 +1,13 @@
 module NiceAssets
   module AssetWorkflowClassMethods
     attr_reader :owner_class
-    attr_reader :asset_specs, :asset_graph
+    attr_reader :asset_manifest, :asset_graph
     attr_reader :output_assets, :checkpoints, :ignore_conditions
 
     def inherited(child)
       child.instance_eval do
+        @asset_manifest = NiceAssets::AssetManifest.new
         @asset_graph = NiceAssets::AssetGraph.new
-        @asset_specs = {}
         @output_assets = []
         @ignore_conditions = {}
         @checkpoints = {}
@@ -31,7 +31,7 @@ module NiceAssets
         foreign_key: foreign_key,
         class_name: class_name)
       spec = NiceAssets::AssetSpecification.new(assoc)
-      @asset_specs[name] = spec
+      @asset_manifest.add_asset(name, spec)
       @asset_graph.add_node(name, after: after)
       @ignore_conditions[name] = ignore if ignore
       @output_assets << name
@@ -41,10 +41,10 @@ module NiceAssets
     def checkpoint(name, condition = name,
         after: nil,
         ignore: nil)
+      @asset_manifest.add_asset(name, condition)
       @asset_graph.add_node(name, after: after)
       @ignore_conditions[name] = ignore if ignore
       @output_assets << name
-      @checkpoints[name] = condition
     end
 
     def outputs(*assets)
