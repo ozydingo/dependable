@@ -6,6 +6,8 @@ require "nice_assets/asset_workflow_class_methods.rb"
 require "nice_assets/asset_workflow.rb"
 require "nice_assets/asset_graph.rb"
 require "nice_assets/asset_manifest.rb"
+require "nice_assets/workflow_delegator.rb"
+require "nice_assets/active_workflow.rb"
 
 # require "nice_assets/asset.rb"
 # require "nice_assets/asset_seeker.rb"
